@@ -16,9 +16,9 @@ RUN yum install -y python-pillow-devel
 RUN yum install -y wget
 RUN cd / && git clone https://github.com/jaymell/photo_mapper /app
 WORKDIR /app 
-RUN ls -la
+RUN mkdir ./public/img
 RUN pip install -r requirements.txt 
 RUN npm install
 RUN ./get_jpgps.sh
-VOLUME [ "./cfg", "/import" ]
+VOLUME [ "./cfg", "/import", "./public/img" ]
 CMD ["/bin/bash"]
