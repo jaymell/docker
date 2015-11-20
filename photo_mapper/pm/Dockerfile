@@ -16,6 +16,7 @@ RUN yum install -y python-pillow-devel
 RUN yum install -y wget
 RUN cd / && git clone https://github.com/jaymell/photo_mapper /app
 WORKDIR /app 
+RUN git clone https://github.com/kamlekar/slim-scroll ./public/lib/slim-scroll
 RUN mkdir ./public/img
 RUN pip install -r requirements.txt 
 RUN npm install
