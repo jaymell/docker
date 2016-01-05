@@ -1,2 +1,2 @@
-sudo docker build -t photomapper .
+sudo docker build -t photo_mapper .
 

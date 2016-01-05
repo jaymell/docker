@@ -3,4 +3,4 @@ sudo docker run --rm --name pm --link pm-mongo -i -t \
 	-v /home/james/python/photo_mapper/cfg:/app/cfg \
 	-v '/home/backup/pictures/2015 vacation/james':/import \
 	-v '/home/james/img':/app/public/img \
-	photomapper
+	photo_mapper

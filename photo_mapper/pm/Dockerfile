@@ -1,25 +1,25 @@
-# https://github.com/CentOS/sig-cloud-instance-images
-
-#FROM scratch
-FROM centos
-MAINTAINER The CentOS Project <cloud-ops@centos.org>
-#ADD c7-docker.tar.xz /
-LABEL Vendor="CentOS"
-LABEL License=GPLv2
-RUN yum update -y
-RUN yum install -y epel-release
-RUN yum install -y python-pip
-RUN yum install -y git
-RUN yum install -y nodejs
-RUN yum install -y npm
-RUN yum install -y python-pillow-devel
-RUN yum install -y wget
-RUN cd / && git clone https://github.com/jaymell/photo_mapper /app
+FROM debian
+RUN apt-get update
+#RUN apt-get upgrade
+RUN apt-get install -y python-dev \
+	python-setuptools \
+	libtiff5-dev \
+	libjpeg62-turbo-dev \
+	zlib1g-dev \
+	libfreetype6-dev \
+	liblcms2-dev \
+	libwebp-dev \
+	tcl8.6-dev \
+	tk8.6-dev \
+	python-tk \
+	python-pip \
+	git \
+	wget
 WORKDIR /app 
-RUN git clone https://github.com/kamlekar/slim-scroll ./public/lib/slim-scroll
+RUN git clone https://github.com/jaymell/photo_mapper .
 RUN mkdir ./public/img
 RUN pip install -r requirements.txt 
-RUN npm install
 RUN ./get_jpgps.sh
-VOLUME [ "./cfg", "/import", "./public/img" ]
-CMD ["/bin/bash"]
+ADD config ./
+VOLUME [ "/import", "./public/img" ]
+CMD ["/usr/bin/python app.py"]

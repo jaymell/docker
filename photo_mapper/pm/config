@@ -1,0 +1,13 @@
+[DB]
+MONGODB_HOST = localhost
+MONGODB_PORT = 27017
+DB_NAME = photo_mapper
+COLLECTION_NAME= photo_mapper
+
+[STORAGE]
+PHOTO_FOLDER = ./public/img
+S3_BUCKET = photo_mapper
+
+[GMAPS]
+# really shouldn't be in github ... argh ....
+KEY = AIzaSyDjPWyvluWokVrNc0Ui7c3UWYFdRvSYzjM
