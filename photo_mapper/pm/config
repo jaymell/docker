@@ -1,5 +1,6 @@
 [DB]
-MONGODB_HOST = localhost
+# this needs to be set dynamically:
+MONGODB_HOST = 172.17.42.1
 MONGODB_PORT = 27017
 DB_NAME = photo_mapper
 COLLECTION_NAME= photo_mapper
