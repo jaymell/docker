@@ -12,3 +12,7 @@ S3_BUCKET = photo_mapper
 [GMAPS]
 # really shouldn't be in github ... argh ....
 KEY = AIzaSyDjPWyvluWokVrNc0Ui7c3UWYFdRvSYzjM
+
+[WEB]
+PORT = 80
+LISTEN_ADDRESS = 0.0.0.0

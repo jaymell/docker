@@ -1,5 +1,5 @@
 sudo docker run --name pm -d \
-    -p 5001:5001 \
+    -p 5001:80 \
 	-v '/home/backup/pictures/2015 vacation/james':/import \
 	-v '/home/james/img-db':/app/static/img \
 	photo_mapper

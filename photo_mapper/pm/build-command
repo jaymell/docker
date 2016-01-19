@@ -1,2 +1,2 @@
-sudo docker build -t photo_mapper .
+sudo docker build --no-cache -t photo_mapper .
 

@@ -1,6 +1,6 @@
 FROM debian
 RUN apt-get update
-#RUN apt-get upgrade
+RUN apt-get upgrade
 RUN apt-get install -y python-dev \
 	python-setuptools \
 	libtiff5-dev \
@@ -16,10 +16,11 @@ RUN apt-get install -y python-dev \
 	git \
 	wget
 WORKDIR /app 
-RUN git clone https://github.com/jaymell/photo_mapper .
+RUN cd . && git clone https://github.com/jaymell/photo_mapper .
 RUN mkdir ./static/img
 RUN pip install -r requirements.txt 
 RUN ./get_jpgps.sh
 ADD config ./
 VOLUME [ "/import", "./static/img" ]
+EXPOSE 80
 CMD ["/usr/bin/python", "app.py"]
