@@ -23,4 +23,4 @@ RUN ./get_jpgps.sh
 ADD config ./
 VOLUME [ "/import", "./static/img" ]
 EXPOSE 80
-CMD ["/usr/bin/python", "app.py"]
+CMD ["./run_app.sh"]
