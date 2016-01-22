@@ -15,12 +15,10 @@ RUN apt-get install -y python-dev \
 	python-pip \
 	git \
 	wget
-WORKDIR /app 
+WORKDIR /app
 RUN cd . && git clone https://github.com/jaymell/photo_mapper .
-RUN mkdir ./static/img
-RUN pip install -r requirements.txt 
+RUN pip install -r requirements.txt
 RUN ./get_jpgps.sh
 ADD config ./
-VOLUME [ "/import", "./static/img" ]
 EXPOSE 80
 CMD ["./run_app.sh"]
