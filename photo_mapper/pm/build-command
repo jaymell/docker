@@ -1,2 +1,4 @@
-sudo docker build --no-cache -t photo_mapper .
-
+aws ecr get-login --region us-east-1
+docker build -t photomapper_flask .
+docker tag photomapper_flask:latest 799617403160.dkr.ecr.us-east-1.amazonaws.com/photomapper_flask:latest
+docker push 799617403160.dkr.ecr.us-east-1.amazonaws.com/photomapper_flask:latest
