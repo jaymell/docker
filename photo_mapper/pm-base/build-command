@@ -1,0 +1,4 @@
+aws ecr get-login --region us-east-1
+docker build -t photomapper_base .
+docker tag photomapper_base:latest 799617403160.dkr.ecr.us-east-1.amazonaws.com/photomapper_base:latest
+docker push 799617403160.dkr.ecr.us-east-1.amazonaws.com/photomapper_base:latest
