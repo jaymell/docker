@@ -1,0 +1,1 @@
+sudo docker run -d --name pm-nginx --link pm-flask -p 80:80 pm-nginx

@@ -1,0 +1,4 @@
+aws ecr get-login --region us-east-1
+docker build --no-cache -t pm-flask .
+docker tag pm-flask:latest 799617403160.dkr.ecr.us-east-1.amazonaws.com/pm-flask:latest
+docker push 799617403160.dkr.ecr.us-east-1.amazonaws.com/pm-flask:latest

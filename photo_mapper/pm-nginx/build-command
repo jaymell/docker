@@ -1,0 +1,4 @@
+aws ecr get-login --region us-east-1
+docker build -t pm-nginx .
+docker tag pm-nginx:latest 799617403160.dkr.ecr.us-east-1.amazonaws.com/pm-nginx:latest
+docker push 799617403160.dkr.ecr.us-east-1.amazonaws.com/pm-nginx:latest

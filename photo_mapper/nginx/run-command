@@ -1,1 +1,0 @@
-sudo docker run -d --name nginx --link photo_mapper -p 80:80 -e MONGODB_HOST=$docker_interface_ip photomapper_nginx

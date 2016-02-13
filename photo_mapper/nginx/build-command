@@ -1,4 +1,0 @@
-aws ecr get-login --region us-east-1
-docker build --no-cache -t photomapper_nginx .
-docker tag photomapper_nginx:latest 799617403160.dkr.ecr.us-east-1.amazonaws.com/photomapper_nginx:latest
-docker push 799617403160.dkr.ecr.us-east-1.amazonaws.com/photomapper_nginx:latest
