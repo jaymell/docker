@@ -1,0 +1,2 @@
+docker_interface_ip=$(ip addr | grep docker0 | grep inet  | awk '{print $2}' | awk -F/ '{print $1}')
+sudo docker rm pm-flask; sudo docker run -d --name pm-flask -e MONGODB_HOST=$docker_interface_ip -e USE_S3=False dev-pm-flask
