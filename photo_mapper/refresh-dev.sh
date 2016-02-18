@@ -1,4 +1,10 @@
 #!/bin/bash
-image_dir=/var/lib/photo_mapper
+
+project_name=photo_mapper
+
+image_dir="/var/lib/${project_name}"
+db=$project_name
+collection=$project_name
+
 rm -f $image_dir/*
-mongo photo_mapper --eval "db.photo_mapper.drop();"
+mongo $db  --eval "db.${collection}.drop();"
