@@ -1,5 +1,14 @@
 #!/bin/bash
 
+#####
+# build:
+#####
+cd ~/src/docker/photo_mapper/dev-pm-flask-2
+sudo docker build --no-cache=true -t dev-pm-flask .
+
+#####
+# stop and restart:
+#####
 docker_interface_ip=$(ip addr | grep docker0 | grep inet  | awk '{print $2}' | awk -F/ '{print $1}')
 echo "Stopping existing containers... "
 sudo docker stop pm-flask 
