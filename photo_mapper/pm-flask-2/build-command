@@ -1,4 +1,8 @@
-aws ecr get-login --region us-east-1
-docker build --no-cache -t pm-flask .
-docker tag pm-flask:latest 799617403160.dkr.ecr.us-east-1.amazonaws.com/pm-flask:latest
-docker push 799617403160.dkr.ecr.us-east-1.amazonaws.com/pm-flask:latest
+export TAG=latest
+export IMAGE=pm-flask-2
+export URL=799617403160.dkr.ecr.us-east-1.amazonaws.com/$IMAGE
+login=$(aws ecr get-login --region us-east-1)
+$login
+aws s3 cp s3://jaymell-docker/config .
+docker build -t $URL:$TAG .
+docker push $URL:$TAG

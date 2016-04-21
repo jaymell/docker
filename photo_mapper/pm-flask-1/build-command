@@ -1,5 +1,5 @@
 export TAG=latest
-export IMAGE=pm-flask-0
+export IMAGE=pm-flask-1
 export URL=799617403160.dkr.ecr.us-east-1.amazonaws.com/$IMAGE
 login=$(aws ecr get-login --region us-east-1)
 $login
