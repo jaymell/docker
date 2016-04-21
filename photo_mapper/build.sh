@@ -2,7 +2,13 @@
 
 TAG=latest
 TAG_URL=799617403160.dkr.ecr.us-east-1.amazonaws.com
-[[ -z $1 ]] && echo "No Image specified. Building all of them"
+if [[ -n $1 ]] 
+then
+	echo "Not implemented yet. Check back later"
+	exit 1
+fi
+
+echo "Building all images"
 image_list=$(find . -maxdepth 1 -type d)
 login=$(aws ecr get-login --region us-east-1)
 $login
