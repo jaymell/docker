@@ -28,6 +28,12 @@ import sys
 import docker
 import time
 
+"""
+# install deps on amazon-linux:
+sudo yum install -y python27-pip.noarch
+sudo pip-2.7 install docker-py
+"""
+
 cli = docker.Client(version='auto')
 
 one_day = 86400
@@ -44,9 +50,11 @@ ecs_host = True
 build_host = False
 
 # technically not ALL images, but good enough for now?
-all_images = cli.images(all=True)
+all_images = cli.images()
 all_image_ids = { i['Id'] for i in all_images }
+all_image_tags = { j for i in all_images for j in i['RepoTags'] if type(i['RepoTags']) == list }
 used_image_ids = { i['ImageID'] for i in running_containers }
+used_image_tags = { i['Image'] for i in running_containers }
 
 # only exclude running containers on ecs host:	
 if ecs_host:
@@ -57,7 +65,8 @@ elif build_host:
 	###
 	# this is where we need jenkins magic:
 	###
-	del_image_ids = [ i['Id'] for i in all_images if (unix_time - i['Created']) > time_threshold ]
+	#del_image_ids = [ i['Id'] for i in all_images if (unix_time - i['Created']) > time_threshold ]
+	del_image_tags = [ i['Id'] for i in all_images if (unix_time - i['Created']) > time_threshold ]
 else:
 	print("What kind of host are you?")
 	sys.exit(1)
@@ -66,16 +75,14 @@ else:
 for ct in del_container_ids:
 	try:
             print("Deleting container %s" % ct)
-            cli.remove_container(container=ct)
+            #cli.remove_container(container=ct)
 	except Exception as e:
             print('Failed to remove container %s: %s' % (ct,e))	
 
 for img in del_image_ids:
     try: 
         print("Deleting img %s" % img)
-        cli.remove_image(image=img)
+        #cli.remove_image(image=img)
     except Exception as e:
         print('Failed to remove image %s: %s' % (img,e))
 
-# way overcomplicated but fun:
-#all_tags = { j for i in images for j in i['RepoTags'] if type(i['RepoTags']) == list }
