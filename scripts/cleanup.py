@@ -5,22 +5,28 @@ run-time parameters
 	-- list of container IDs to exclude
 	-- list of image IDs to exclude
 
-. get _all_ containers
+. get _all_ containers by ID
 	if ecs host:
-	. get images used by running containers
-	. remove running containers from list
-. remove any container excludes passed at runtime
-. remove all containers left in list
+	. get image TAGS _AND_ IDs used by running containers
+		-- making sure we exclude both from image deletion will prevent running containers
+			from having the tag they're using removed -- the container continues running,
+			but it will lose the reference to the image tag it's using, which sucks 
+	. remove running container IDs from list
+	. remove any container excludes passed at runtime
+	. "docker rm" all containers left in list
 
-. get _all_ images
+. get images (not intermediate) -- both TAGS and IDs, probably
 	if build host:
-		remove ones with certain tags -- get via jenkins request?
-		remove ones less than certain age ? (probably only if jenkins doesn't work)
+		remove ones with certain tags from list  -- get via jenkins request?
 	if ecs host:
-		remove ones associated with containers from list 
-
-. remove any image excludes passed at runtime
-. remove all images left in list
+		remove TAGs associated with running containers from list 
+		remove IDs associated with running containers from list 
+	. remove any image excludes passed at runtime
+	. remove all image TAGS left in list
+	. remove all image IDs left in list
+		. repeat -- _hopfully_ doing so will allow to loop back through and delete any
+			which previously failed because of child images
+		. repeat ad nauseum?
 
 """
 
@@ -36,6 +42,7 @@ sudo pip-2.7 install docker-py
 
 cli = docker.Client(version='auto')
 
+# in case we just want to delete images older than certain threshold, ie 10 days:
 one_day = 86400
 num_days = 10
 time_threshold = num_days * one_day
