@@ -94,7 +94,7 @@ def remove_images(image_list, num_attempts):
 		for img in image_list:
 			try:
 				print("Deleting img tag %s" % img)
-				#cli.remove_image(image=img)
+				cli.remove_image(image=img)
 			except Exception as e:
 				print('Failed to remove image tag %s: %s' % (img,e))
 			else:
@@ -177,7 +177,7 @@ if __name__ == '__main__':
 		FORCE = False if args.preserve_running else True
 		try:
 				print("Deleting container %s" % ct)
-				#cli.remove_container(container=ct, force=FORCE)
+				cli.remove_container(container=ct, force=FORCE)
 		except Exception as e:
 				print('Failed to remove container %s: %s' % (ct,e))	
 
