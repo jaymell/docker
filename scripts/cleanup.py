@@ -242,6 +242,5 @@ if __name__ == '__main__':
 
 	# then by ID:
         if del_image_ids:
-            print("del_image_ids:", del_image_ids)
             remove_images(cli, del_image_ids, MAX_ATTEMPTS, execute=execute)
 
