@@ -157,9 +157,9 @@ if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='Delete old images and containers on Docker hosts')
 	parser.add_argument('--preserve-running', "-p", default = False, action = 'store_true',	
 						help="If true, preserve running containers and the images associated with them. Default is False")
-	parser.add_argument('--num-days', '-n', default = 0, 
+	parser.add_argument('--num-days', '-n', default = 1, type=int,
 						help= """ Specify minimum number of days old  an image
-						or container must be before deleting it. Default is 0 """
+						or container must be before deleting it. Default is 1 """
 					   )
 	parser.add_argument("--exclude-image-tag", "-t", nargs="+", help="Exclude specified Image __Tags__")
 	parser.add_argument("--exclude-image-id", "-i", nargs="+", help="Exclude specified Image __IDs__")
@@ -193,7 +193,7 @@ if __name__ == '__main__':
 	used_image_ids = { i['ImageID'] for i in running_containers }
 	used_image_tags = { i['Image'] for i in running_containers }
 
-	del_container_ids = [ i for i in all_container_ids if (unix_time - i['Created']) > time_threshold ]
+	del_container_ids = [ i['Id'] for i in all_containers if (unix_time - i['Created']) > time_threshold ]
 	del_image_tags = { j for i in all_images for j in i['RepoTags'] if type(i['RepoTags']) == list and (unix_time - i['Created']) > time_threshold }
 	del_image_ids = [ i['Id'] for i in all_images if (unix_time - i['Created']) > time_threshold ]
 
