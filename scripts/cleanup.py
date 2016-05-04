@@ -2,9 +2,10 @@
 
 """
 run-time parameters
-	-- list of container IDs to exclude
-	-- list of image IDs to exclude
+    -- list of image IDs to exclude
+    -- list of image TAGs to exclude
 
+#algorithm:
 . get _all_ containers by ID
 	if preserve_running:
 	. get image TAGS _AND_ IDs used by running containers
@@ -25,10 +26,14 @@ run-time parameters
 		that was passed and remove those from deletion lists as well
 	. remove all image TAGs left in list
 	. remove all image IDs left in list
-		. repeat -- _hopfully_ doing so will allow to loop back through and delete any
+		. repeat -- looping back through and deleting any
 			which previously failed because of child images
-		. repeat ad nauseum?
+		. repeat until you hit MAX_ATTEMPTS or because all have been deleted
 
+. Limitations and Weirdnesses
+    since tags deleted before IDs, and IDs list gets created before Tags list is 
+        deleted, there will likely be lots of errors once it starts deleting IDs,
+        since many will have already been deleted by iterating through tags
 """
 
 import sys
@@ -78,7 +83,24 @@ def exclude_image_ids(image_list, images_to_exclude, all_images):
 		return (images, tags_to_exclude)
 
 
-def remove_images(image_list, num_attempts):
+def remove_containers(client, container_list, Force=False, execute=False):
+    """ remove containers -- nothing fancy, since this generally
+        works -- Force=True if you want to remove moving containers
+        as well """
+
+    if not container_list:
+        print("Container list is empty!")
+        return
+    for ct in del_container_ids:
+    # set force=False just in case to prevent accidental container deletion, 
+    # even though above logic should already have removed them from deletion list:
+        try:
+            print("Deleting container %s" % ct)
+            if execute: client.remove_container(container=ct, force=Force)
+        except Exception as e:
+            print('Failed to remove container %s: %s' % (ct,e))
+
+def remove_images(client, image_list, num_attempts, execute=False):
 	""" take a list of either images or tags and, assuming the list
 		isn't empty, attempt to delete them one by one -- remove successful
 		ones from list """
@@ -94,7 +116,7 @@ def remove_images(image_list, num_attempts):
 		for img in image_list:
 			try:
 				print("Deleting img tag %s" % img)
-				cli.remove_image(image=img)
+				if execute: client.remove_image(image=img)
 			except Exception as e:
 				print('Failed to remove image tag %s: %s' % (img,e))
 			else:
@@ -104,6 +126,8 @@ def remove_images(image_list, num_attempts):
 
 
 if __name__ == '__main__':
+
+	MAX_ATTEMPTS = 10
 
 	cli = docker.Client(version='auto')
 
@@ -118,11 +142,16 @@ if __name__ == '__main__':
 	#				   )
 	parser.add_argument("--exclude-image-tag", "-t", nargs="+", help="Exclude specified Image __Tags__")
 	parser.add_argument("--exclude-image-id", "-i", nargs="+", help="Exclude specified Image __IDs__")
-
+	parser.add_argument("--execute", "-x", action = "store_true", default=False, help="This is how you actually run it, heh")
 
 	args = parser.parse_args()
-
-	MAX_ATTEMPTS = 10
+        #### if execute False, don't actually delete stuff -- False by default
+        execute = args.execute
+        if not execute:
+            print("\n\n****************DRY RUN ONLY****************\n\n")
+        else:
+            print("\n\n****************ACTUALLY DELETING STUFF!****n\n")
+        
 
 	# in case we just want to delete images older than certain threshold, ie 10 days:
 	one_day = 86400
@@ -166,27 +195,21 @@ if __name__ == '__main__':
 		del_image_tags = exclude_image_tags(del_image_tags, args.exclude_image_tag)
 	if args.exclude_image_id:
 		del_image_ids, additional_tag_excludes = exclude_image_ids(del_image_ids, args.exclude_image_id, all_images)	
-	# this is some sloppy stuff:
+	# this is sloppy -- take the TAGs returned by exclude_image_ids
+        # and make sure they're taken out of the to-be-deleted list:
 	if additional_tag_excludes:
 		del_image_tags = exclude_image_tags(del_image_tags, additional_tag_excludes)
 
-	# delete containers -- need to remove excludes from runtime params:
-	for ct in del_container_ids:
-		# set force=False just in case to prevent accidental container deletion, 
-		# even though above logic should already have removed them from deletion list:
-		FORCE = False if args.preserve_running else True
-		try:
-				print("Deleting container %s" % ct)
-				cli.remove_container(container=ct, force=FORCE)
-		except Exception as e:
-				print('Failed to remove container %s: %s' % (ct,e))	
+        # remove containers:
+        Force = False if args.preserve_running else True
+        remove_containers(cli, del_container_ids, Force=Force, execute=execute)
 
-	# remove the nones:
+	# remove the <None:None> from tag list:
 	del_image_tags = remove_the_nones(del_image_tags)
 
 	# remove images by tag first:
-	remove_images(del_image_tags, MAX_ATTEMPTS)
+	remove_images(cli, del_image_tags, MAX_ATTEMPTS, execute=execute)
 
 	# then by ID:
-	remove_images(del_image_ids, MAX_ATTEMPTS)
+	remove_images(cli, del_image_ids, MAX_ATTEMPTS, execute=execute)
 
