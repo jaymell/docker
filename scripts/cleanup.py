@@ -56,11 +56,12 @@ def remove_the_nones(image_tag_list):
 	images = [ i for i in image_tag_list if '<none>:<none>' not in i ]
 	return images
 
-def exclude_image_tags(image_list, images_to_exclude):
+def exclude_image_tags(image_list, images_to_exclude, all_images):
     """ because tags and repos are ambiguous, don't assume to know
         which one was intended... regex either """
         
     deletions = []
+    ids_to_exclude = []
     for exclude in images_to_exclude:
             for img in image_list:
                 match = re.search('.*%s.*' % exclude, img)
@@ -68,34 +69,42 @@ def exclude_image_tags(image_list, images_to_exclude):
                 if match: 
                     print("Skipping tag %s" % img)
                     deletions.append(img)
+
     images = [ i for i in image_list if i not in deletions ]
-    return images
+
+    for deletion in deletions:
+        for img in all_images:
+            if type(img['RepoTags']) == list and deletion in img['RepoTags']:
+               ids_to_exclude.append(img['Id'])
+ 
+    return (images, ids_to_exclude)
 
 def exclude_image_ids(image_list, images_to_exclude, all_images):
-		""" a little more involved; 1) since short image names may be
-			passed, use regex to match against full image name; 2) I'm 
-			assuming we want to preserve tags associated with image IDs
-			to preserve, so find associated image tags and return those
-			as well so they can be removed from del_image_tags, which
-                        is why all_images must be passed """
+    """ a little more involved; 1) since short image names may be
+        passed, use regex to match against full image name; 2) I'm 
+        assuming we want to preserve tags associated with image IDs
+        to preserve, so find associated image tags and return those
+        as well so they can be removed from del_image_tags, which
+        is why all_images must be passed """
 
-		deletions = []
-		tags_to_exclude = []
-		for exclude in images_to_exclude:
-			for img in image_list:
-				match = re.search('.*%s.*' % exclude, img)
-				# if the exclude matches an entry in the deletion list:
-				if match: 
-                                    print("Skipping ID %s" % img)
-                                    deletions.append(img)
-		images = [ i for i in image_list if i not in deletions ]	
+    deletions = []
+    tags_to_exclude = []
+    for exclude in images_to_exclude:
+    	for img in image_list:
+    		match = re.search('.*%s.*' % exclude, img)
+    		# if the exclude matches an entry in the deletion list:
+    		if match: 
+                        print("Skipping ID %s" % img)
+                        deletions.append(img)
 
-                for deletion in deletions:
-                        for img in all_images:
-                                if img['Id'] == deletion:
-                                        tags_to_exclude.extend([i for i in img['RepoTags'] if type(img['RepoTags']) == list])
-
-		return (images, tags_to_exclude)
+    images = [ i for i in image_list if i not in deletions ]	
+    
+    for deletion in deletions:
+            for img in all_images:
+                    if img['Id'] == deletion:
+                            tags_to_exclude.extend([i for i in img['RepoTags'] if type(img['RepoTags']) == list])
+    
+    return (images, tags_to_exclude)
 
 
 def remove_containers(client, container_list, Force=False, execute=False):
@@ -162,9 +171,9 @@ if __name__ == '__main__':
         #### if execute False, don't actually delete stuff -- False by default
         execute = args.execute
         if not execute:
-            print("\n\n****************DRY RUN ONLY****************\n\n")
+            print("\n****************DRY RUN ONLY****************\n")
         else:
-            print("\n\n****************ACTUALLY DELETING STUFF!****n\n")
+            print("\n****************ACTUALLY DELETING STUFF!****\n")
         
 
 	# in case we just want to delete images older than certain threshold, ie 10 days:
@@ -192,28 +201,31 @@ if __name__ == '__main__':
 		print("Preserving running containers and associated images... ")
 		del_container_ids = [ i for i in all_container_ids if i not in running_container_ids ]
                 # filter 'used_image_tags' out of 'all_image_tags':
-		del_image_tags = exclude_image_tags(all_image_tags, used_image_tags)
-                # filter 'used_image_ids' out of 'all_image_ids' -- 'unused' is b/c of weirdness of that function:
+		del_image_tags, unused = exclude_image_tags(all_image_tags, used_image_tags, all_images)
+                # filter 'used_image_ids' out of 'all_image_ids':
                 del_image_ids, unused = exclude_image_ids(all_image_ids, used_image_ids, all_images)
 		# notice this isn't using all_image_tags -- because we need the time info in the dict:
 		#del_image_tags = { j for i in all_images for j in i['RepoTags'] if type(i['RepoTags']) == list and (unix_time - i['Created']) > time_threshold }
 		# notice this isn't using all_image_ids -- because we need the time info in the dict:
 		#del_image_ids = [ i['Id'] for i in all_images if (unix_time - i['Created']) > time_threshold ]
 	else:
-		print("Attempting to delete ALL containers and images... ")
+		print("Attempting to delete ALL containers and images, minus CLI exclusions... ")
 		del_container_ids = all_container_ids
 		del_image_tags = [ i for i in all_image_tags ]
 		del_image_ids = [ i for i in all_image_ids ]
 
 	additional_tag_excludes = None
+	additional_id_excludes = None
 	if args.exclude_image_tag:
-		del_image_tags = exclude_image_tags(del_image_tags, args.exclude_image_tag)
+		del_image_tags, additional_id_excludes = exclude_image_tags(del_image_tags, args.exclude_image_tag, all_images)
 	if args.exclude_image_id:
 		del_image_ids, additional_tag_excludes = exclude_image_ids(del_image_ids, args.exclude_image_id, all_images)	
 	# this is sloppy -- take the TAGs returned by exclude_image_ids
         # and make sure they're taken out of the to-be-deleted list:
 	if additional_tag_excludes:
-		del_image_tags = exclude_image_tags(del_image_tags, additional_tag_excludes)
+		del_image_tags, unused = exclude_image_tags(del_image_tags, additional_tag_excludes, all_images)
+	if additional_id_excludes:
+		del_image_ids, unused = exclude_image_ids(del_image_ids, additional_id_excludes, all_images)
 
         # remove containers:
         Force = False if args.preserve_running else True
@@ -225,9 +237,11 @@ if __name__ == '__main__':
 
 	# remove images by tag first:
         if del_image_tags:
+            
             remove_images(cli, del_image_tags, MAX_ATTEMPTS, execute=execute)
 
 	# then by ID:
         if del_image_ids:
+            print("del_image_ids:", del_image_ids)
             remove_images(cli, del_image_ids, MAX_ATTEMPTS, execute=execute)
 
