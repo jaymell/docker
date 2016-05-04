@@ -157,12 +157,10 @@ if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='Delete old images and containers on Docker hosts')
 	parser.add_argument('--preserve-running', "-p", default = False, action = 'store_true',	
 						help="If true, preserve running containers and the images associated with them. Default is False")
-	#parser.add_argument('--num-days', 
-	#					'-n',
-	#					default = 10,
-	#					help= """ If --preserve-running is True, you can specify a minimum number of days old 
-	#							an image or container must be before deleting it. Default is 10 """
-	#				   )
+	parser.add_argument('--num-days', '-n', default = 0, 
+						help= """ Specify minimum number of days old  an image
+						or container must be before deleting it. Default is 0 """
+					   )
 	parser.add_argument("--exclude-image-tag", "-t", nargs="+", help="Exclude specified Image __Tags__")
 	parser.add_argument("--exclude-image-id", "-i", nargs="+", help="Exclude specified Image __IDs__")
 	parser.add_argument("--execute", "-x", action = "store_true", default=False, help="This is how you actually run it, heh")
@@ -178,8 +176,7 @@ if __name__ == '__main__':
 
 	# in case we just want to delete images older than certain threshold, ie 10 days:
 	one_day = 86400
-	#num_days = args.num_days
-	num_days = 10
+	num_days = args.num_days
 	time_threshold = num_days * one_day
 	unix_time = time.time() 
 
@@ -196,23 +193,18 @@ if __name__ == '__main__':
 	used_image_ids = { i['ImageID'] for i in running_containers }
 	used_image_tags = { i['Image'] for i in running_containers }
 
+	del_container_ids = [ i for i in all_container_ids if (unix_time - i['Created']) > time_threshold ]
+	del_image_tags = { j for i in all_images for j in i['RepoTags'] if type(i['RepoTags']) == list and (unix_time - i['Created']) > time_threshold }
+	del_image_ids = [ i['Id'] for i in all_images if (unix_time - i['Created']) > time_threshold ]
+
 	# only exclude running containers on ecs host:	
 	if args.preserve_running:
 		print("Preserving running containers and associated images... ")
-		del_container_ids = [ i for i in all_container_ids if i not in running_container_ids ]
-                # filter 'used_image_tags' out of 'all_image_tags':
-		del_image_tags, unused = exclude_image_tags(all_image_tags, used_image_tags, all_images)
-                # filter 'used_image_ids' out of 'all_image_ids':
-                del_image_ids, unused = exclude_image_ids(all_image_ids, used_image_ids, all_images)
-		# notice this isn't using all_image_tags -- because we need the time info in the dict:
-		#del_image_tags = { j for i in all_images for j in i['RepoTags'] if type(i['RepoTags']) == list and (unix_time - i['Created']) > time_threshold }
-		# notice this isn't using all_image_ids -- because we need the time info in the dict:
-		#del_image_ids = [ i['Id'] for i in all_images if (unix_time - i['Created']) > time_threshold ]
+		del_container_ids = [ i for i in del_container_ids if i not in running_container_ids ]
+		del_image_tags, unused = exclude_image_tags(del_image_tags, used_image_tags, all_images)
+		del_image_ids, unused = exclude_image_ids(del_image_ids, used_image_ids, all_images)
 	else:
 		print("Attempting to delete ALL containers and images, minus CLI exclusions... ")
-		del_container_ids = all_container_ids
-		del_image_tags = [ i for i in all_image_tags ]
-		del_image_ids = [ i for i in all_image_ids ]
 
 	additional_tag_excludes = None
 	additional_id_excludes = None
