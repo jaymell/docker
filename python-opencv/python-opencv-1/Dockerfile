@@ -1,3 +1,4 @@
+#http://docs.opencv.org/2.4/doc/tutorials/introduction/linux_install/linux_install.html
 FROM 799617403160.dkr.ecr.us-east-1.amazonaws.com/python-opencv-0
 ENV cmake_dir /opencv
 ENV cmake_bin_dir $cmake_dir/work
