@@ -163,6 +163,7 @@ if __name__ == '__main__':
 					   )
 	parser.add_argument("--exclude-image-tag", "-t", nargs="+", help="Exclude specified Image __Tags__")
 	parser.add_argument("--exclude-image-id", "-i", nargs="+", help="Exclude specified Image __IDs__")
+	parser.add_argument("--containers-only", "-c", action = "store_true", default=False, help="Only delete containers")
 	parser.add_argument("--execute", "-x", action = "store_true", default=False, help="This is how you actually run it, heh")
 	args = parser.parse_args()
 
@@ -227,12 +228,12 @@ if __name__ == '__main__':
 	# remove the <None:None> from tag list:
 	del_image_tags = remove_the_nones(del_image_tags)
 
-	# remove images by tag first:
-        if del_image_tags:
-            
-            remove_images(cli, del_image_tags, MAX_ATTEMPTS, execute=execute)
+        if not args.containers_only:
+            # remove images by tag first:
+            if del_image_tags:
+                remove_images(cli, del_image_tags, MAX_ATTEMPTS, execute=execute)
 
-	# then by ID:
-        if del_image_ids:
-            remove_images(cli, del_image_ids, MAX_ATTEMPTS, execute=execute)
+            # then by ID:
+            if del_image_ids:
+                remove_images(cli, del_image_ids, MAX_ATTEMPTS, execute=execute)
 
