@@ -3,11 +3,14 @@ FROM ubuntu:latest
 RUN apt-get update && \
 	apt-get install -y \
 		python \
-		python-pip
+		python-pip \
+		vim-common \
+        less
 
 RUN pip install \
 	awscli \
 	boto \
 	boto3 
 	
-VOLUME /root/.aws/
+RUN mkdir /root/.aws/
+#VOLUME /root/.aws/
