@@ -13,4 +13,6 @@ RUN pip install \
 	boto3 
 	
 RUN mkdir /root/.aws/
+ADD credentials.template /root/.aws/credentials
+
 #VOLUME /root/.aws/
